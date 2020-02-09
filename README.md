@@ -1,1 +1,3 @@
 # PredictiveNetworks
+
+Run a multilayer perceptron (feed forward neural network) with two hidden layers on the iris dataset using the keras Sequential interface. Data can be imported via the following link: http://vincentarelbundock.github.io/Rdatasets/csv/datasets/iris.csv. Include code for selecting the number of hidden units using GridSearchCV and evaluation on a test-set. Describe the differences in the predictive accuracy of models with different numbers of hidden units. Describe the predictive strength of your best model. Be sure to explain your choice and evaluate this model using the test set.
