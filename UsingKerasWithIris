@@ -1,0 +1,236 @@
+# IMPORT PACKAGES
+import os
+os.system("pip install keras")
+import os
+os.system("pip install tensorflow")
+import keras
+import sklearn
+from keras.wrappers.scikit_learn import KerasClassifier
+import numpy as ny
+import pandas as pd
+from keras.optimizers import SGD
+from keras.layers import Dense, Activation
+from keras.models import Sequential
+from keras.utils.np_utils import to_categorical
+
+
+
+# IMPORT IRIS DATA
+data = pd.read_csv("http://vincentarelbundock.github.io/Rdatasets/csv/datasets/iris.csv" , encoding="latin_1")
+
+# Update Data to Set Up for Train Test Split
+data = data.iloc[:,1:]
+y = data['Species']
+X = data.loc[:, data.columns != 'Species']
+
+# Transform non-numerical y-labels to numerical labels
+encoder = LabelEncoder().fit(y)
+encoded_Y = encoder.transform(y)
+y = keras.utils.to_categorical(encoded_Y)
+
+# Split the Data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+
+
+
+# RUN A MULTILAYER PERCEPTRON WITH 2 HIDDEN LAYERS ON THE IRIS DATASET USING THE KERAS SEQUENTIAL INTERFACE
+# Create a Function that Builds the Model
+def compile_model(n = 8, learn_rate = 0.01): # I randomly picked these hyperparameters
+    
+    # Create the Model using the Sequential interface
+    model = Sequential()
+    
+    # 2 Hidden Layers
+    model.add(Dense(n, input_dim=4, activation='relu')) # Hidden Layer #1
+    model.add(Dense(n, activation='relu')) # Hidden Layer #2
+    model.add(Dense(3, activation='softmax')) # Output Layer
+    
+    # Compile the Model
+    optimizer = SGD(lr=learn_rate)
+    model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+    return model
+    
+
+
+
+# SELECT THE NUMBER OF HIDDEN UNITS USING GRDSEARCH ON A TEST-SET
+# Adjusting the number of neurons in a layer
+# Establish the Model Our New Function will Inform
+#basemodel = compile_model()
+
+# Define the Grid Search Parameters
+param_grid = dict(n=[16,32,48,64,80,96,112,128]) 
+
+# Call the new Model Function in the KerasClassifier Package 
+model = KerasClassifier(build_fn = compile_model, verbose=0) 
+
+# Use n_jobs=-1 to Parallelize Across Available Processors (to speed it up)
+grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs = -1).fit(X_train, y_train)
+
+# Print Best Training Results
+print("Best score is {:.2f},".format(grid.best_score_),"Best parameter is {}".format(grid.best_params_))
+
+# Summarize Training Results
+means = grid.cv_results_['mean_test_score']
+stds = grid.cv_results_['std_test_score']
+params = grid.cv_results_['params']
+for mean, stdev, param in zip(means, stds, params):
+    print("{:.2f} ({:.2f}) with {}".format(mean, stdev, param))
+
+
+
+
+
+# Adjusting the number of epochs
+# Define the Grid Search Parameters
+param_grid = dict(epochs=[10,20,30])
+
+# Call the new Model Function in the KerasClassifier Package 
+model = KerasClassifier(build_fn = compile_model, verbose=0) 
+
+# Use n_jobs=-1 to Parallelize Across Available Processors (to speed it up)
+grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs = -1)
+grid = grid.fit(X_train, y_train)
+
+# Print Best Training Results
+print("Best score is {:.2f},".format(grid.best_score_),"Best parameter is {}".format(grid.best_params_))
+
+# Summarize Training Results
+means = grid.cv_results_['mean_test_score']
+stds = grid.cv_results_['std_test_score']
+params = grid.cv_results_['params']
+for mean, stdev, param in zip(means, stds, params):
+    print("{:.2f} ({:.2f}) with {}".format(mean, stdev, param))
+
+
+
+
+
+# Adjusting the learn rate
+# Define the Grid Search Parameters
+learn_rate = [0.0001, 0.001, 0.01, 0.02]
+
+# Set Dictionary for the Parameters
+param_grid = dict(learn_rate=learn_rate) 
+
+# Call the new Model Function in the KerasClassifier Package 
+model = KerasClassifier(build_fn = compile_model, verbose=0) 
+
+# Use n_jobs=-1 to Parallelize Across Available Processors (to speed it up)
+grid = GridSearchCV(estimator=model, param_grid=param_grid)
+grid = grid.fit(X_train, y_train)
+
+# Print Best Training Results
+print("Best score is {:.2f},".format(grid.best_score_),"Best parameter is {}".format(grid.best_params_))
+
+# Summarize Training Results
+means = grid.cv_results_['mean_test_score']
+stds = grid.cv_results_['std_test_score']
+params = grid.cv_results_['params']
+for mean, stdev, param in zip(means, stds, params):
+    print("{:.2f} ({:.2f}) with {}".format(mean, stdev, param))
+
+
+
+
+
+# Adjust the batches and epochs simultaneously!
+# Define the Grid Search Parameters 
+epochs = [10,20,30]
+batches = [5, 10, 20] 
+param_grid = dict(epochs=epochs, batch_size=batches)
+
+# Call the new Model Function in the KerasClassifier Package 
+model = KerasClassifier(build_fn = compile_model, verbose=0) 
+
+# Use n_jobs=-1 to Parallelize Across Available Processors (to speed it up)
+grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs = -1)
+grid = grid.fit(X_train, y_train)
+
+# Print Best Training Results
+print("Best score is {:.2f},".format(grid.best_score_),"Best parameter is {}".format(grid.best_params_))
+
+# Summarize Training Results
+means = grid.cv_results_['mean_test_score']
+stds = grid.cv_results_['std_test_score']
+params = grid.cv_results_['params']
+for mean, stdev, param in zip(means, stds, params):
+    print("{:.2f} ({:.2f}) with {}".format(mean, stdev, param))
+
+
+
+
+# Ajdust neurons and learn rate, too!
+# Define the Grid Search Parameters
+n = [16,32,48,64]
+learn_rate = [0.0001, 0.001, 0.01]
+param_grid = dict(n=n, learn_rate=learn_rate)
+
+# Call the new Model Function in the KerasClassifier Package 
+model = KerasClassifier(build_fn = compile_model, verbose=0) 
+
+# Use n_jobs=-1 to Parallelize Across Available Processors (to speed it up)
+grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs = -1)
+grid = grid.fit(X_train, y_train)
+
+# Print Best Training Results
+print("Best score is {:.2f},".format(grid.best_score_),"Best parameter is {}".format(grid.best_params_))
+
+# Summarize Training Results
+means = grid.cv_results_['mean_test_score']
+stds = grid.cv_results_['std_test_score']
+params = grid.cv_results_['params']
+for mean, stdev, param in zip(means, stds, params):
+    print("{:.2f} ({:.2f}) with {}".format(mean, stdev, param))
+
+
+
+
+
+# DESCRIBE PREDICTIVE STRENGTH OF BEST MODEL
+# Define the Grid Search Parameters
+n = [16,32,48,64]
+learn_rate = [0.0001, 0.001, 0.01]
+epochs = [10,20,30]
+batches = [5, 10, 20] 
+param_grid = dict(n=n, learn_rate=learn_rate, epochs=epochs, batch_size=batches)
+
+# Call the new Model Function in the KerasClassifier Package 
+model = KerasClassifier(build_fn = compile_model, verbose=0) 
+
+# Use n_jobs=-1 to Parallelize Across Available Processors (to speed it up)
+grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs = -1)
+grid = grid.fit(X_train, y_train)
+
+# Print Best Training Results
+print("Best score is {:.2f},".format(grid.best_score_),"Best parameter is {}".format(grid.best_params_))
+
+# Summarize Training Results
+means = grid.cv_results_['mean_test_score']
+stds = grid.cv_results_['std_test_score']
+params = grid.cv_results_['params']
+for mean, stdev, param in zip(means, stds, params):
+    print("{:.2f} ({:.2f}) with {}".format(mean, stdev, param))
+    
+
+
+
+
+# EVALUATE THE BEST MODEL USING TEST-SET
+# Update Model with New Parameters
+best_model = Sequential() # Best Neuron Parameter
+best_model.add(Dense(48, input_dim=4, activation='relu'))
+best_model.add(Dense(48, activation='relu'))
+best_model.add(Dense(3, activation='softmax'))
+
+# Compile Model
+optimizer = SGD(lr=0.01) # Best Learn Rate Parameter
+best_model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+
+# Fit the Model
+best_model.fit(X_train, y_train,  epochs=30, batch_size=10) # Best Epoch & Batch Size Parameter
+score = best_model.evaluate(X_test, y_test, batch_size=10)
+
+# Describe Strength of the Model
+print("Test loss: {:.3f}".format(score[0]))
+print("Test Accuracy: {:.3f}".format(score[1]))
